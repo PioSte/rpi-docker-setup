@@ -1,0 +1,152 @@
+# private data stored in the .env file
+
+---
+version: "2"
+services:
+  duckdns:
+    image: linuxserver/duckdns
+    container_name: duckdns
+    environment:
+      - PUID=${PUID_piotr} #optional
+      - PGID=${PGID_users} #optional
+      - TZ=Europe/Warsaw
+      - SUBDOMAINS=${duckdns_subdomains}
+      - TOKEN=${duckdns_token}
+      - LOG_FILE=false #optional
+    labels:
+      com.centurylinklabs.watchtower.enable: "true" # update with Watchtower
+    restart: unless-stopped
+  mariadb:
+    image: linuxserver/mariadb
+    container_name: nextclouddb
+    environment:
+      - PUID=${PUID_piotr}
+      - PGID=${PGID_users}
+      - MYSQL_ROOT_PASSWORD=${mysql_root_password}
+      - TZ=Europe/Warsaw
+      - MYSQL_DATABASE=nextcloud
+      - MYSQL_USER=${mysql_user}
+      - MYSQL_PASSWORD=${mysql_password}
+    volumes:
+      - /srv/dev-disk-by-label-Toshiba/appdata/Nextcloud/database:/config
+    ports:
+      - 3306:3306 #external:internal
+    labels:
+      com.centurylinklabs.watchtower.enable: "true" # update with Watchtower
+    restart: unless-stopped
+  nextcloud:
+    image: ghcr.io/linuxserver/nextcloud
+    container_name: nextcloud
+    environment:
+      # - PUID=1000 # ${PUID_piotr}
+      - PUID=${PUID_piotr}
+      - PGID=${PGID_users}
+      - TZ=Europe/Warsaw
+    volumes:
+      - /srv/dev-disk-by-label-Toshiba/appdata/Nextcloud/config:/config
+      - /srv/dev-disk-by-label-Toshiba/appdata/Nextcloud/data:/data
+    depends_on:
+      - mariadb
+    ports:
+      - 446:443 #external:internal, used to be 445:443
+      - 82:80 #external:internal
+    labels:
+      com.centurylinklabs.watchtower.enable: "true" # update with Watchtower
+    restart: unless-stopped
+  swag: # previously 'letsencrypt'
+    image: ghcr.io/linuxserver/swag
+    container_name: swag
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - STAGING=false #change to false after done testing
+      - PUID=${PUID_piotr} #change PUID if needed
+      - PGID=${PGID_users}  #change PGID if needed
+      - TZ=Europe/Warsaw # change Time Zone if needed
+      - URL=${letsencrypt_url} #insert your domain name - yourdomain.url
+      - SUBDOMAINS=www,nextcloud
+      - VALIDATION=http
+      - EMAIL=${email} # define email; required to renew certificate
+    volumes:
+      - /srv/dev-disk-by-label-Toshiba/appdata/letsencrypt:/config  #/srv/dev-disk-by-label-disk1 needs to be adjusted
+    ports:
+      - 444:443 #external:internal
+      - 81:80 #external:internal
+    labels:
+      com.centurylinklabs.watchtower.enable: "true" # update with Watchtower
+    restart: unless-stopped
+  plex:
+    image: linuxserver/plex:bionic # changed to 'bionic' instead of 'latest' (https://github.com/linuxserver/docker-plex/issues/248#issuecomment-733955977)
+    container_name: plex
+    network_mode: host
+    environment:
+      - PUID=${PUID_piotr}
+      - PGID=${PGID_users}
+      - VERSION=docker
+      - UMASK_SET=022 #optional
+    volumes:
+      - /srv/dev-disk-by-label-Toshiba/appdata/plex:/config
+      - /export/ToshibaMedia/Seriale/:/tv
+      - /export/ToshibaMedia/Filmy/:/movies
+      - /export/ToshibaMedia/Muzyka/:/music
+      # - /sharedfolders/ToshibaMedia/Seriale/:/tv
+      # - /sharedfolders/ToshibaMedia/Filmy/:/movies
+    labels:
+      com.centurylinklabs.watchtower.enable: "true" # update with Watchtower
+    restart: unless-stopped
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=3600
+      - WATCHTOWER_LABEL_ENABLE=true
+    labels:
+      com.centurylinklabs.watchtower.enable: "true" # update with Watchtower
+    restart: unless-stopped
+  pihole:
+    container_name: pihole
+    image: pihole/pihole:latest
+    ports:
+      # Used to be:
+      - 53:53/tcp #external:internal
+      - 53:53/udp #external:internal
+      # After OMV reinstall port 53 is occupied. Better solution might be the reverse proxy: https://hub.docker.com/r/pihole/pihole/
+      # - 55:53/tcp #external:internal
+      # - 55:53/udp #external:internal
+      - 8080:80/tcp #external:internal
+    environment:
+      - TZ=Europe/Warsaw
+      - ServerIP=192.168.1.99
+      - WEBPASSWORD=${pihole_webpassword}
+      - DNS1=127.0.0.1
+      - DNS2=1.1.1.1
+    volumes:
+      - /srv/dev-disk-by-label-Toshiba/appdata/pihole/etc-pihole/:/etc/pihole/
+      - /srv/dev-disk-by-label-Toshiba/appdata/pihole/etc-dnsmasq.d/:/etc/dnsmasq.d/
+    dns:
+      - 127.0.0.1
+      - 1.1.1.1
+    labels:
+      com.centurylinklabs.watchtower.enable: "false" # update with Watchtower
+    restart: unless-stopped
+  syncthing:
+    image: lscr.io/linuxserver/syncthing
+    container_name: syncthing
+    # hostname: syncthing #optional
+    environment:
+      - PUID=${PUID_piotr}
+      - PGID=${PGID_users}
+      - TZ=Europe/Warsaw
+    volumes:
+      - /srv/dev-disk-by-label-Toshiba/appdata/syncthing:/config
+      - /export/ToshibaMedia/SyncthingData/:/data1
+      # - /path/to/data2:/data2
+    ports:
+      - 8384:8384
+      - 22000:22000/tcp
+      - 22000:22000/udp
+      - 21027:21027/udp
+    restart: unless-stopped
+ 
