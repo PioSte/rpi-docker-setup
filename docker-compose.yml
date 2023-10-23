@@ -4,7 +4,7 @@
 version: "2"
 services:
   duckdns:
-    image: linuxserver/duckdns
+    image: linuxserver/duckdns:arm64v8-latest
     container_name: duckdns
     environment:
       - PUID=${PUID_piotr} #optional
@@ -17,7 +17,7 @@ services:
       com.centurylinklabs.watchtower.enable: "true" # update with Watchtower
     restart: unless-stopped
   mariadb:
-    image: linuxserver/mariadb
+    image: linuxserver/mariadb:arm64v8-latest
     container_name: nextclouddb
     environment:
       - PUID=${PUID_piotr}
@@ -35,7 +35,7 @@ services:
       com.centurylinklabs.watchtower.enable: "true" # update with Watchtower
     restart: unless-stopped
   nextcloud:
-    image: ghcr.io/linuxserver/nextcloud
+    image: ghcr.io/linuxserver/nextcloud:arm64v8-latest
     container_name: nextcloud
     environment:
       # - PUID=1000 # ${PUID_piotr}
@@ -54,7 +54,7 @@ services:
       com.centurylinklabs.watchtower.enable: "true" # update with Watchtower
     restart: unless-stopped
   swag: # previously 'letsencrypt'
-    image: ghcr.io/linuxserver/swag
+    image: ghcr.io/linuxserver/swag:arm64v8-latest
     container_name: swag
     cap_add:
       - NET_ADMIN
@@ -132,7 +132,7 @@ services:
       com.centurylinklabs.watchtower.enable: "false" # update with Watchtower
     restart: unless-stopped
   syncthing:
-    image: lscr.io/linuxserver/syncthing
+    image: lscr.io/linuxserver/syncthing:arm64v8-latest
     container_name: syncthing
     # hostname: syncthing #optional
     environment:
