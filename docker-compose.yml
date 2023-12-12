@@ -4,7 +4,7 @@
 version: "2"
 services:
   duckdns:
-    image: linuxserver/duckdns:arm64v8-latest
+    image: linuxserver/duckdns:latest
     container_name: duckdns
     environment:
       - PUID=${PUID_piotr} #optional
@@ -17,7 +17,7 @@ services:
       com.centurylinklabs.watchtower.enable: "true" # update with Watchtower
     restart: unless-stopped
   mariadb:
-    image: linuxserver/mariadb:arm64v8-latest
+    image: linuxserver/mariadb:latest
     container_name: nextclouddb
     environment:
       - PUID=${PUID_piotr}
@@ -35,7 +35,7 @@ services:
       com.centurylinklabs.watchtower.enable: "true" # update with Watchtower
     restart: unless-stopped
   nextcloud:
-    image: ghcr.io/linuxserver/nextcloud:arm64v8-latest
+    image: ghcr.io/linuxserver/nextcloud:latest
     container_name: nextcloud
     environment:
       # - PUID=1000 # ${PUID_piotr}
@@ -54,7 +54,7 @@ services:
       com.centurylinklabs.watchtower.enable: "true" # update with Watchtower
     restart: unless-stopped
   swag: # previously 'letsencrypt'
-    image: ghcr.io/linuxserver/swag:arm64v8-latest
+    image: ghcr.io/linuxserver/swag:latest
     container_name: swag
     cap_add:
       - NET_ADMIN
@@ -76,7 +76,7 @@ services:
       com.centurylinklabs.watchtower.enable: "true" # update with Watchtower
     restart: unless-stopped
   plex:
-    image: linuxserver/plex:bionic # changed to 'bionic' instead of 'latest' (https://github.com/linuxserver/docker-plex/issues/248#issuecomment-733955977)
+    image: linuxserver/plex:latest # changed to 'bionic' instead of 'latest' (https://github.com/linuxserver/docker-plex/issues/248#issuecomment-733955977)
     container_name: plex
     network_mode: host
     environment:
@@ -86,9 +86,9 @@ services:
       - UMASK_SET=022 #optional
     volumes:
       - /srv/dev-disk-by-label-Toshiba/appdata/plex:/config
-      - /export/ToshibaMedia/Seriale/:/tv
-      - /export/ToshibaMedia/Filmy/:/movies
-      - /export/ToshibaMedia/Muzyka/:/music
+      - /srv/dev-disk-by-label-Toshiba/ToshibaMedia/Seriale/:/tv
+      - /srv/dev-disk-by-label-Toshiba/ToshibaMedia/Filmy/:/movies
+      - /srv/dev-disk-by-label-Toshiba/ToshibaMedia/Muzyka/:/music
       # - /sharedfolders/ToshibaMedia/Seriale/:/tv
       # - /sharedfolders/ToshibaMedia/Filmy/:/movies
     labels:
@@ -132,7 +132,7 @@ services:
       com.centurylinklabs.watchtower.enable: "false" # update with Watchtower
     restart: unless-stopped
   syncthing:
-    image: lscr.io/linuxserver/syncthing:arm64v8-latest
+    image: lscr.io/linuxserver/syncthing:latest
     container_name: syncthing
     # hostname: syncthing #optional
     environment:
@@ -141,7 +141,7 @@ services:
       - TZ=Europe/Warsaw
     volumes:
       - /srv/dev-disk-by-label-Toshiba/appdata/syncthing:/config
-      - /export/ToshibaMedia/SyncthingData/:/data1
+      - /srv/dev-disk-by-label-Toshiba/ToshibaMedia/SyncthingData/:/data1
       # - /path/to/data2:/data2
     ports:
       - 8384:8384
