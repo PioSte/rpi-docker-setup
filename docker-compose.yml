@@ -35,7 +35,7 @@ services:
       com.centurylinklabs.watchtower.enable: "true" # update with Watchtower
     restart: unless-stopped
   nextcloud:
-    image: ghcr.io/linuxserver/nextcloud:latest
+    image: lscr.io/linuxserver/nextcloud:latest
     container_name: nextcloud
     environment:
       # - PUID=1000 # ${PUID_piotr}
@@ -54,7 +54,7 @@ services:
       com.centurylinklabs.watchtower.enable: "true" # update with Watchtower
     restart: unless-stopped
   swag: # previously 'letsencrypt'
-    image: ghcr.io/linuxserver/swag:latest
+    image: lscr.io/linuxserver/swag:latest
     container_name: swag
     cap_add:
       - NET_ADMIN
