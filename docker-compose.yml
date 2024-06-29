@@ -6,12 +6,14 @@ services:
   duckdns:
     image: linuxserver/duckdns:latest
     container_name: duckdns
+    network_mode: host # needed for ipv6
     environment:
       - PUID=${PUID_piotr} #optional
       - PGID=${PGID_users} #optional
       - TZ=Europe/Warsaw
       - SUBDOMAINS=${duckdns_subdomains}
       - TOKEN=${duckdns_token}
+      - UPDATE_IP=both #ipv6
       - LOG_FILE=false #optional
     labels:
       com.centurylinklabs.watchtower.enable: "true" # update with Watchtower
