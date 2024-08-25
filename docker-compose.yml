@@ -6,14 +6,14 @@ services:
   duckdns:
     image: linuxserver/duckdns:latest
     container_name: duckdns
-    network_mode: host # needed for ipv6
+    # network_mode: host # needed for ipv6
     environment:
       - PUID=${PUID_piotr} #optional
       - PGID=${PGID_users} #optional
       - TZ=Europe/Warsaw
       - SUBDOMAINS=${duckdns_subdomains}
       - TOKEN=${duckdns_token}
-      - UPDATE_IP=both #ipv6
+      # - UPDATE_IP=ipv6 #both
       - LOG_FILE=false #optional
     labels:
       com.centurylinklabs.watchtower.enable: "true" # update with Watchtower
@@ -30,7 +30,7 @@ services:
       - MYSQL_USER=${mysql_user}
       - MYSQL_PASSWORD=${mysql_password}
     volumes:
-      - /srv/dev-disk-by-label-Toshiba/appdata/Nextcloud/database:/config
+      - /export/Toshiba/appdata/Nextcloud/database:/config
     ports:
       - 3306:3306 #external:internal
     labels:
@@ -45,8 +45,8 @@ services:
       - PGID=${PGID_users}
       - TZ=Europe/Warsaw
     volumes:
-      - /srv/dev-disk-by-label-Toshiba/appdata/Nextcloud/config:/config
-      - /srv/dev-disk-by-label-Toshiba/appdata/Nextcloud/data:/data
+      - /export/Toshiba/appdata/Nextcloud/config:/config
+      - /export/Toshiba/appdata/Nextcloud/data:/data
     depends_on:
       - mariadb
     ports:
@@ -66,11 +66,11 @@ services:
       - PGID=${PGID_users}  #change PGID if needed
       - TZ=Europe/Warsaw # change Time Zone if needed
       - URL=${letsencrypt_url} #insert your domain name - yourdomain.url
-      - SUBDOMAINS=www,nextcloud
+      - SUBDOMAINS=www,nextcloud,qbittorrent
       - VALIDATION=http
       - EMAIL=${email} # define email; required to renew certificate
     volumes:
-      - /srv/dev-disk-by-label-Toshiba/appdata/letsencrypt:/config  #/srv/dev-disk-by-label-disk1 needs to be adjusted
+      - /export/Toshiba/appdata/letsencrypt:/config  #/srv/dev-disk-by-label-disk1 needs to be adjusted
     ports:
       - 444:443 #external:internal
       - 81:80 #external:internal
@@ -87,10 +87,10 @@ services:
       - VERSION=docker
       - UMASK_SET=022 #optional
     volumes:
-      - /srv/dev-disk-by-label-Toshiba/appdata/plex:/config
-      - /srv/dev-disk-by-label-Toshiba/ToshibaMedia/Seriale/:/tv
-      - /srv/dev-disk-by-label-Toshiba/ToshibaMedia/Filmy/:/movies
-      - /srv/dev-disk-by-label-Toshiba/ToshibaMedia/Muzyka/:/music
+      - /export/Toshiba/appdata/plex:/config
+      - /export/Toshiba/ToshibaMedia/Seriale/:/tv
+      - /export/Toshiba/ToshibaMedia/Filmy/:/movies
+      - /export/Toshiba/ToshibaMedia/Muzyka/:/music
       # - /sharedfolders/ToshibaMedia/Seriale/:/tv
       # - /sharedfolders/ToshibaMedia/Filmy/:/movies
     labels:
@@ -125,8 +125,8 @@ services:
       - DNS1=127.0.0.1
       - DNS2=1.1.1.1
     volumes:
-      - /srv/dev-disk-by-label-Toshiba/appdata/pihole/etc-pihole/:/etc/pihole/
-      - /srv/dev-disk-by-label-Toshiba/appdata/pihole/etc-dnsmasq.d/:/etc/dnsmasq.d/
+      - /export/Toshiba/appdata/pihole/etc-pihole/:/etc/pihole/
+      - /export/Toshiba/appdata/pihole/etc-dnsmasq.d/:/etc/dnsmasq.d/
     dns:
       - 127.0.0.1
       - 1.1.1.1
@@ -142,8 +142,8 @@ services:
       - PGID=${PGID_users}
       - TZ=Europe/Warsaw
     volumes:
-      - /srv/dev-disk-by-label-Toshiba/appdata/syncthing:/config
-      - /srv/dev-disk-by-label-Toshiba/ToshibaMedia/SyncthingData/:/data1
+      - /export/Toshiba/appdata/syncthing:/config
+      - /export/Toshiba/ToshibaMedia/SyncthingData/:/data1
       # - /path/to/data2:/data2
     ports:
       - 8384:8384
@@ -151,4 +151,20 @@ services:
       - 22000:22000/udp
       - 21027:21027/udp
     restart: unless-stopped
- 
+  # qbittorrent:
+  #   image: lscr.io/linuxserver/qbittorrent:latest
+  #   container_name: qbittorrent
+  #   environment:
+  #     - PUID=${PUID_piotr}
+  #     - PGID=${PGID_users}
+  #     - TZ=Europe/Warsaw
+  #     - WEBUI_PORT=8081
+  #     - TORRENTING_PORT=6881
+  #   volumes:
+  #     - /export/Toshiba/appdata/qbittorrent:/config
+  #     - /export/Toshiba/ToshibaMedia/Qbittorrent/:/downloads
+  #   ports:
+  #     - 8081:8081
+  #     - 6881:6881
+  #     - 6881:6881/udp
+  #   restart: unless-stopped
