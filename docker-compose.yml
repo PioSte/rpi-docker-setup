@@ -1,7 +1,7 @@
 # private data stored in the .env file
 
 ---
-version: "2"
+# version: "2"
 services:
   duckdns:
     image: linuxserver/duckdns:latest
