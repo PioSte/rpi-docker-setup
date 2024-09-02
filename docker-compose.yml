@@ -5,15 +5,16 @@ services:
     # if CPU usage is too high, changed to 'bionic' instead of 'latest'
     # https://github.com/linuxserver/docker-plex/issues/248#issuecomment-733955977
     image: linuxserver/plex:latest
+    container_name: plex
     environment:
-      - PUID=${PUID_PLEX}
-      - PGID=${PGID_PLEX}
+      - PUID=${PUID_piotr}
+      - PGID=${PGID_users}
       - UMASK_SET=002
       - VERSION=docker
     volumes:
-      - /export/Toshiba/appdata/plex/config:/config
-      - /export/Toshiba/ToshibaMedia/Seriale/:/tv
-      - /export/Toshiba/ToshibaMedia/Filmy/:/movies
-      - /export/Toshiba/ToshibaMedia/Muzyka/:/music
+      - /mnt/Toshiba/appdata/plex/:/config
+      - /mnt/Toshiba/Dane/Seriale/:/tv
+      - /mnt/Toshiba/Dane/Filmy/:/movies
+      - /mnt/Toshiba/Dane/Muzyka/:/music
     network_mode: host
     restart: unless-stopped
