@@ -70,8 +70,8 @@ services:
     volumes:
       - /mnt/Toshiba/appdata/letsencrypt:/config  #/srv/dev-disk-by-label-disk1 needs to be adjusted
     ports:
-      - 444:443 #external:internal
-      - 81:80 #external:internal
+      - 443:443 #external:internal
+      - 80:80 #external:internal
     labels:
       com.centurylinklabs.watchtower.enable: "true" # update with Watchtower
     restart: unless-stopped
