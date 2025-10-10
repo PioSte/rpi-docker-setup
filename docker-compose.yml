@@ -32,7 +32,7 @@ services:
     volumes:
       - /srv/dev-disk-by-label-Toshiba/appdata/Nextcloud/database:/config
     ports:
-      - 3306:3306 #external:internal
+      - "3306:3306" #external:internal
     labels:
       com.centurylinklabs.watchtower.enable: "true" # update with Watchtower
     restart: unless-stopped
@@ -50,8 +50,8 @@ services:
     depends_on:
       - mariadb
     ports:
-      - 446:443 #external:internal, used to be 445:443
-      - 82:80 #external:internal
+      - "446:443" #external:internal, used to be 445:443
+      - "82:80" #external:internal
     labels:
       com.centurylinklabs.watchtower.enable: "true" # update with Watchtower
     restart: unless-stopped
@@ -72,8 +72,8 @@ services:
     volumes:
       - /srv/dev-disk-by-label-Toshiba/appdata/letsencrypt:/config  #/srv/dev-disk-by-label-disk1 needs to be adjusted
     ports:
-      - 444:443 #external:internal
-      - 81:80 #external:internal
+      - "444:443" #external:internal
+      - "81:80" #external:internal
     labels:
       com.centurylinklabs.watchtower.enable: "true" # update with Watchtower
     restart: unless-stopped
@@ -112,12 +112,12 @@ services:
     image: pihole/pihole:latest
     ports:
       # Used to be:
-      - 53:53/tcp #external:internal
-      - 53:53/udp #external:internal
+      - "53:53/tcp" #external:internal
+      - "53:53/udp" #external:internal
       # After OMV reinstall port 53 is occupied. Better solution might be the reverse proxy: https://hub.docker.com/r/pihole/pihole/
-      # - 55:53/tcp #external:internal
-      # - 55:53/udp #external:internal
-      - 8080:80/tcp #external:internal
+      # - "55:53/tcp" #external:internal
+      # - "55:53/udp" #external:internal
+      - "8080:80/tcp" #external:internal
     environment:
       - TZ=Europe/Warsaw
       - ServerIP=192.168.1.99
@@ -146,9 +146,96 @@ services:
       - /srv/dev-disk-by-label-Toshiba/ToshibaMedia/SyncthingData/:/data1
       # - /path/to/data2:/data2
     ports:
-      - 8384:8384
-      - 22000:22000/tcp
-      - 22000:22000/udp
-      - 21027:21027/udp
+      - "8384:8384"
+      - "22000:22000/tcp"
+      - "22000:22000/udp"
+      - "21027:21027/udp"
     restart: unless-stopped
+
+  # === MONITORING STACK ===
+  # Prometheus - Metrics collection and storage
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    user: "65534:65534"  # nobody user for security
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=15d'  # Keep 15 days of data
+      - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - /srv/dev-disk-by-label-Toshiba/appdata/prometheus:/prometheus
+    networks:
+      - monitoring
+    labels:
+      com.centurylinklabs.watchtower.enable: "true"
+    restart: unless-stopped
+
+  # Grafana - Beautiful dashboards and visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel,grafana-worldmap-panel
+    ports:
+      - "3000:3000"
+    volumes:
+      - /srv/dev-disk-by-label-Toshiba/appdata/grafana:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+    networks:
+      - monitoring
+    labels:
+      com.centurylinklabs.watchtower.enable: "true"
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+  # cAdvisor - Container metrics (CPU, memory, network, disk)
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    privileged: true
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+      - /cgroup:/cgroup:ro
+    ports:
+      - "8088:8080"  # Avoiding conflict with Pi-hole
+    networks:
+      - monitoring
+    labels:
+      com.centurylinklabs.watchtower.enable: "true"
+    restart: unless-stopped
+
+  # Node Exporter - Host system metrics (CPU, memory, disk, network)
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    command:
+      - '--path.rootfs=/host'
+    ports:
+      - "9100:9100"
+    volumes:
+      - '/:/host:ro,rslave'
+    networks:
+      - monitoring
+    labels:
+      com.centurylinklabs.watchtower.enable: "true"
+    restart: unless-stopped
+
+networks:
+  monitoring:
+    driver: bridge
  
