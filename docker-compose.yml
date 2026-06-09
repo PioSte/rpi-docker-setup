@@ -122,24 +122,24 @@ services:
     # labels:
     #   com.centurylinklabs.watchtower.enable: "false" # update with Watchtower
     restart: unless-stopped
-  syncthing:
-    image: lscr.io/linuxserver/syncthing:latest
-    container_name: syncthing
-    # hostname: syncthing #optional
-    environment:
-      - PUID=${PUID_piotr}
-      - PGID=${PGID_users}
-      - TZ=Europe/Warsaw
-    volumes:
-      - /mnt/RAID5/appdata/syncthing:/config
-      - /mnt/RAID5/read-write-share/SyncthingData/:/data1
-      # - /path/to/data2:/data2
-    ports:
-      - 8384:8384
-      - 22000:22000/tcp
-      - 22000:22000/udp
-      - 21027:21027/udp
-    restart: unless-stopped
+  # syncthing:
+  #   image: lscr.io/linuxserver/syncthing:latest
+  #   container_name: syncthing
+  #   # hostname: syncthing #optional
+  #   environment:
+  #     - PUID=${PUID_piotr}
+  #     - PGID=${PGID_users}
+  #     - TZ=Europe/Warsaw
+  #   volumes:
+  #     - /mnt/RAID5/appdata/syncthing:/config
+  #     - /mnt/RAID5/read-write-share/SyncthingData/PS/Zdjecia/OnePlus13/:/Zdjecia_OnePlus13_PS
+  #     # - /path/to/data2:/data2
+  #   ports:
+  #     - 8384:8384
+  #     - 22000:22000/tcp
+  #     - 22000:22000/udp
+  #     - 21027:21027/udp
+  #   restart: unless-stopped
 
   jellyfin:
     image: lscr.io/linuxserver/jellyfin:latest
@@ -154,6 +154,9 @@ services:
       - /mnt/RAID5/read-write-share/Seriale/:/data/tvshows
       - /mnt/RAID5/read-write-share/Filmy/:/data/movies
       - /mnt/RAID5/read-write-share/Muzyka/:/data/music
+      - /mnt/RAID5/read-write-share/metube/bbosss1/:/data/bbosss1
+      - /mnt/RAID5/read-write-share/metube/PS/:/data/PS
+      - /mnt/RAID5/read-write-share/Kasety:/data/Kasety
       - /mnt/RAID5/appdata/jellyfin/:/config
     devices:
       - /dev/dri:/dev/dri
@@ -163,4 +166,39 @@ services:
       - 7359:7359/udp #optional
       - 1900:1900/udp #optional
     restart: unless-stopped
+  
+  metube:
+    image: ghcr.io/alexta69/metube
+    container_name: metube
+    restart: unless-stopped
+    environment:
+      - UID=${PUID_piotr}
+      - GID=${PGID_users}
+      - DELETE_FILE_ON_TRASHCAN=true
+    ports:
+      - "8081:8081"
+    volumes:
+      - /mnt/RAID5/read-write-share/metube/bbosss1/:/downloads/bbosss1
+      - /mnt/RAID5/read-write-share/metube/PS/:/downloads/PS
 
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    environment:
+      - PUID=${PUID_piotr}
+      - PGID=${PGID_users}
+      - TZ=Europe/Warsaw
+      - WEBUI_PORT=8090
+      - TORRENTING_PORT=6881
+      - DOCKER_MODS=ghcr.io/vuetorrent/vuetorrent-lsio-mod:latest
+    volumes:
+      - /mnt/RAID5/appdata/:/config
+      - /mnt/RAID5/read-write-share/Downloads-qBittorrent-Container:/Downloads #optional
+      - /mnt/RAID5/read-write-share/Seriale/:/Seriale
+      - /mnt/RAID5/read-write-share/Filmy/:/Filmy
+      - /mnt/RAID5/read-write-share/Muzyka/:/Muzyka
+    ports:
+      - 8090:8090
+      - 6881:6881
+      - 6881:6881/udp
+    restart: unless-stopped
